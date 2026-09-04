@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User profiles - allow users to read/write their own data
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.uid == userId
+                    && request.resource.data.email == request.auth.token.email;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow querying users by email (for checking duplicates)
+    match /users/{document=**} {
+      allow list: if false; // Prevent listing all users
+    }
+  }
+}
