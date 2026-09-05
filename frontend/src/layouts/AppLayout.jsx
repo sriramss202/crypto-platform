@@ -83,7 +83,7 @@ function AppLayout() {
       {/* Main Content Area & Desktop Header */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Desktop Header — Top Right Corner Avatar */}
-        <header className="hidden lg:flex h-16 items-center justify-between border-b border-white/10 bg-[#0A0F1C]/80 px-6 backdrop-blur-md">
+        <header className="sticky top-0 z-30 hidden h-16 items-center justify-between border-b border-white/10 bg-[#0A0F1C]/95 px-6 backdrop-blur-md lg:flex">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">BitPal Trade Platform</span>
           </div>
