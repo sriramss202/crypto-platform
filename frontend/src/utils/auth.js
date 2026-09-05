@@ -14,6 +14,8 @@ export const setUserSession = (user) => {
     displayName: user.displayName || "",
     email: user.email || "",
     phoneNumber: user.phoneNumber || "",
+    avatarUrl: user.avatarUrl || user.photoURL || "",
+    avatarType: user.avatarType || "",
     photoURL: user.photoURL || "",
     provider: user.provider || "",
     role: user.role || "user",

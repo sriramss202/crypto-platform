@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { Menu, Bell, User } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import Sidebar from "../components/Sidebar/Sidebar";
+import Avatar from "../components/Common/Avatar";
+import { getCurrentUser } from "../utils/auth";
 
 function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [user, setUser] = useState(getCurrentUser());
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setUser(getCurrentUser());
+  }, []);
 
   const handleNavigateProfile = (e) => {
     if (e) e.preventDefault();
@@ -45,7 +52,7 @@ function AppLayout() {
           </div>
         </div>
 
-        {/* Right: Notifications & Profile Icons */}
+        {/* Right: Notifications & Profile Avatar */}
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             type="button"
@@ -61,10 +68,11 @@ function AppLayout() {
           <button
             type="button"
             onClick={handleNavigateProfile}
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-gray-300 transition-colors hover:bg-cyan-500/10 hover:text-cyan-400"
+            className="flex items-center justify-center transition-transform hover:scale-105 active:scale-95"
             aria-label="Profile"
+            title={user?.displayName || "Profile"}
           >
-            <User size={18} />
+            <Avatar user={user} size="sm" />
           </button>
         </div>
       </header>
@@ -72,10 +80,49 @@ function AppLayout() {
       {/* Sidebar Component (Handles Desktop Sticky & Mobile Overlay Drawer) */}
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 min-w-0 overflow-x-hidden pt-20 px-3 sm:px-5 lg:pt-6 lg:px-6 lg:py-6">
-        <Outlet />
-      </main>
+      {/* Main Content Area & Desktop Header */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Desktop Header — Top Right Corner Avatar */}
+        <header className="hidden lg:flex h-16 items-center justify-between border-b border-white/10 bg-[#0A0F1C]/80 px-6 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">BitPal Trade Platform</span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={handleNavigateAlerts}
+              className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-gray-300 transition-colors hover:bg-cyan-500/10 hover:text-cyan-400"
+              aria-label="Notifications"
+            >
+              <Bell size={18} />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-cyan-400" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNavigateProfile}
+              className="flex items-center gap-3 rounded-2xl bg-white/5 p-1.5 pr-4 text-left transition-all hover:bg-cyan-500/10 border border-white/5"
+              aria-label="Profile"
+            >
+              <Avatar user={user} size="sm" />
+              <div>
+                <p className="text-xs font-semibold text-white leading-tight">
+                  {user?.displayName || user?.email?.split("@")[0] || "User"}
+                </p>
+                <p className="text-[10px] text-cyan-400 capitalize">
+                  {user?.role || "Trader"}
+                </p>
+              </div>
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 min-w-0 overflow-x-hidden pt-20 px-3 sm:px-5 lg:pt-6 lg:px-6 lg:py-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

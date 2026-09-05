@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 
 import { loginWithGoogle, loginWithEmailPassword } from "../../firebase/auth";
 import { loginAdmin, setUserSession } from "../../utils/auth";
+import Avatar from "../Common/Avatar";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -199,17 +200,7 @@ function LoginForm() {
                 <p>{message}</p>
                 {connectedUser && isSuccess && (
                   <div className="mt-2.5 flex items-center justify-center gap-2.5 rounded-lg border border-cyan-400/20 bg-cyan-950/40 p-2">
-                    {connectedUser.photoURL ? (
-                      <img
-                        src={connectedUser.photoURL}
-                        alt="User profile"
-                        className="h-7 w-7 rounded-full object-cover ring-2 ring-cyan-400/50"
-                      />
-                    ) : (
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cyan-500/20 text-xs font-bold text-cyan-300">
-                        {(connectedUser.email || "U").charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <Avatar user={connectedUser} size="xs" />
                     <div className="text-left text-xs">
                       <p className="font-semibold text-white">
                         {connectedUser.displayName || "Google User"}

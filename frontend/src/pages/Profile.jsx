@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { User, Mail, Phone, Calendar, ShieldCheck, Award } from "lucide-react";
+import { Mail, Phone, Calendar, ShieldCheck, Award } from "lucide-react";
 import { getCurrentUser } from "../utils/auth";
+import Avatar from "../components/Common/Avatar";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -21,11 +22,11 @@ function Profile() {
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4 border-b border-white/10 pb-6">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-400">
-          <User size={32} />
-        </div>
+        <Avatar user={user} size="lg" />
         <div>
-          <h1 className="text-3xl font-bold text-white">Your Profile</h1>
+          <h1 className="text-3xl font-bold text-white">
+            {user.displayName || "Your Profile"}
+          </h1>
           <p className="mt-1 text-gray-400">Manage your BitPal Trade account credentials.</p>
         </div>
       </div>

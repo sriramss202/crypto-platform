@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 
 import { auth, db } from "./firebase";
+import { generateDiceBearAvatar } from "../utils/avatar";
 
 // =====================================================
 // GOOGLE PROVIDER
@@ -28,88 +29,141 @@ googleProvider.setCustomParameters({
 });
 
 // =====================================================
+// CREATE OR GET USER PROFILE (Firestore & Avatar)
+// =====================================================
+
+export const createOrGetUserProfile = async (firebaseUser, extraData = {}) => {
+  if (!firebaseUser) return null;
+
+  const uid = firebaseUser.uid;
+  const userRef = doc(db, "users", uid);
+
+  let existingProfile = null;
+  try {
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      existingProfile = userSnap.data();
+    }    
+  } catch (error) {
+    console.warn("Firestore read warning:", error);
+  }
+
+  if (existingProfile) {
+    const isLegacyGooglePhoto =
+      existingProfile.avatarType === "google_photo" ||
+      existingProfile.avatarType === "google" ||
+      (existingProfile.photoURL &&
+        existingProfile.avatarUrl === existingProfile.photoURL);
+    let avatarUrl = isLegacyGooglePhoto ? "" : existingProfile.avatarUrl || "";
+    let avatarType = isLegacyGooglePhoto
+      ? ""
+      : existingProfile.avatarType || "";
+
+    if (!avatarUrl) {
+      avatarUrl = generateDiceBearAvatar(uid);
+      avatarType = "dicebear";
+
+      try {
+        await setDoc(userRef, { avatarUrl, avatarType }, { merge: true });
+      } catch (err) {
+        console.warn("Failed to update avatar in Firestore:", err);
+      }
+    }
+
+    try {
+      await setDoc(
+        userRef,
+        {
+          lastLogin: serverTimestamp(),
+          loginCount: increment(1),
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn("Failed to update login stats in Firestore:", err);
+    }
+
+    return {
+      uid: uid,
+      displayName:
+        existingProfile.displayName ||
+        firebaseUser.displayName ||
+        firebaseUser.email?.split("@")[0] ||
+        "User",
+      email: existingProfile.email || firebaseUser.email || "",
+      phoneNumber: existingProfile.phoneNumber || firebaseUser.phoneNumber || extraData.phoneNumber || "",
+      avatarUrl: avatarUrl,
+      avatarType: avatarType,
+      provider: existingProfile.provider || extraData.provider || "email",
+      role: existingProfile.role || "user",
+      isEmailVerified: firebaseUser.emailVerified || false,
+    };
+  }
+
+  // Profile does not exist - Create profile
+  let avatarUrl = "";
+  let avatarType = "";
+
+  avatarUrl = generateDiceBearAvatar(uid);
+  avatarType = "dicebear";
+
+  const displayName =
+    firebaseUser.displayName ||
+    (firebaseUser.email ? firebaseUser.email.split("@")[0] : "User");
+
+  const provider =
+    extraData.provider ||
+    (firebaseUser.providerData?.[0]?.providerId === "google.com" ? "google" : "email");
+
+  const newProfile = {
+    uid: uid,
+    displayName: displayName,
+    email: firebaseUser.email || "",
+    phoneNumber: extraData.phoneNumber || firebaseUser.phoneNumber || "",
+    photoURL: firebaseUser.photoURL || "",
+    avatarUrl: avatarUrl,
+    avatarType: avatarType,
+    provider: provider,
+    role: "user",
+    isEmailVerified: firebaseUser.emailVerified || false,
+    createdAt: serverTimestamp(),
+    lastLogin: serverTimestamp(),
+    loginCount: 1,
+  };
+
+  try {
+    await setDoc(userRef, newProfile, { merge: true });
+  } catch (error) {
+    console.warn("Firestore profile creation warning:", error);
+  }
+
+  return {
+    uid: uid,
+    displayName: displayName,
+    email: firebaseUser.email || "",
+    phoneNumber: newProfile.phoneNumber,
+    avatarUrl: avatarUrl,
+    avatarType: avatarType,
+    provider: provider,
+    role: "user",
+    isEmailVerified: firebaseUser.emailVerified || false,
+  };
+};
+
+// =====================================================
 // GOOGLE LOGIN
 // =====================================================
 
 export const loginWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-
     const firebaseUser = result.user;
 
     console.log("Google login successful:", firebaseUser);
 
-    // Firestore user document
-    const userRef = doc(db, "users", firebaseUser.uid);
-
-    let existingProfile = {};
-
-    try {
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        existingProfile = userSnap.data();
-      }
-    } catch (error) {
-      console.warn("Firestore read warning:", error);
-    }
-
-    const userData = {
-      uid: firebaseUser.uid,
-      displayName:
-        firebaseUser.displayName ||
-        firebaseUser.email?.split("@")[0] ||
-        "Google User",
-      email: firebaseUser.email || "",
-      phoneNumber: firebaseUser.phoneNumber || "",
-      photoURL: firebaseUser.photoURL || "",
+    const sessionUser = await createOrGetUserProfile(firebaseUser, {
       provider: "google",
-      role: existingProfile.role || "user",
-      isEmailVerified: firebaseUser.emailVerified,
-      lastLogin: serverTimestamp(),
-    };
-
-    // Create/update Firestore profile
-    try {
-      if (existingProfile && Object.keys(existingProfile).length > 0) {
-        await setDoc(userRef, userData, { merge: true });
-
-        await setDoc(
-          userRef,
-          {
-            loginCount: increment(1),
-          },
-          { merge: true }
-        );
-      } else {
-        await setDoc(
-          userRef,
-          {
-            ...userData,
-            createdAt: serverTimestamp(),
-            loginCount: 1,
-          },
-          { merge: true }
-        );
-      }
-    } catch (error) {
-      console.warn("Firestore write warning:", error);
-    }
-
-    // Safe frontend session data
-    const sessionUser = {
-      uid: firebaseUser.uid,
-      displayName:
-        firebaseUser.displayName ||
-        firebaseUser.email?.split("@")[0] ||
-        "Google User",
-      email: firebaseUser.email || "",
-      phoneNumber: firebaseUser.phoneNumber || "",
-      photoURL: firebaseUser.photoURL || "",
-      provider: "google",
-      role: existingProfile.role || "user",
-      isEmailVerified: firebaseUser.emailVerified,
-    };
+    });
 
     return {
       success: true,
@@ -213,40 +267,10 @@ export const registerWithEmailPassword = async (
 
     const firebaseUser = result.user;
 
-    // Firestore reference
-    const userRef = doc(db, "users", firebaseUser.uid);
-
-    const userData = {
-      uid: firebaseUser.uid,
-      displayName: email.split("@")[0],
-      email: firebaseUser.email || "",
+    const sessionUser = await createOrGetUserProfile(firebaseUser, {
       phoneNumber: phone,
-      photoURL: "",
       provider: "email",
-      role: "user",
-      isEmailVerified: firebaseUser.emailVerified,
-      createdAt: serverTimestamp(),
-      lastLogin: serverTimestamp(),
-      loginCount: 1,
-    };
-
-    try {
-      await setDoc(userRef, userData, { merge: true });
-    } catch (error) {
-      console.warn("Firestore save warning:", error);
-    }
-
-    // Safe session user
-    const sessionUser = {
-      uid: firebaseUser.uid,
-      displayName: email.split("@")[0],
-      email: firebaseUser.email || "",
-      phoneNumber: phone,
-      photoURL: "",
-      provider: "email",
-      role: "user",
-      isEmailVerified: firebaseUser.emailVerified,
-    };
+    });
 
     return {
       success: true,
@@ -303,44 +327,9 @@ export const loginWithEmailPassword = async (
 
     const firebaseUser = result.user;
 
-    // Firestore profile
-    const userRef = doc(db, "users", firebaseUser.uid);
-
-    let profile = {};
-
-    try {
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        profile = userSnap.data();
-      }
-
-      await setDoc(
-        userRef,
-        {
-          lastLogin: serverTimestamp(),
-          loginCount: increment(1),
-        },
-        { merge: true }
-      );
-    } catch (error) {
-      console.warn("Firestore update warning:", error);
-    }
-
-    // Safe session user
-    const sessionUser = {
-      uid: firebaseUser.uid,
-      displayName:
-        profile.displayName ||
-        firebaseUser.email?.split("@")[0] ||
-        "User",
-      email: firebaseUser.email || "",
-      phoneNumber: profile.phoneNumber || "",
-      photoURL: profile.photoURL || "",
-      provider: profile.provider || "email",
-      role: profile.role || "user",
-      isEmailVerified: firebaseUser.emailVerified,
-    };
+    const sessionUser = await createOrGetUserProfile(firebaseUser, {
+      provider: "email",
+    });
 
     return {
       success: true,
