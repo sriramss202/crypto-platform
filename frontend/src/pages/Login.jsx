@@ -23,7 +23,7 @@ function Login() {
           <h1 className="text-5xl font-bold leading-tight tracking-tight">
             Trade smarter.
             <span className="mt-2 block bg-gradient-to-r from-cyan-300 to-violet-300 bg-clip-text text-transparent">
-              Sign in to your dashboard.
+             Welcome back to BitPal
             </span>
           </h1>
           
