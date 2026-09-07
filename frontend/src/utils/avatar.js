@@ -62,5 +62,6 @@ export const generateInitials = (displayName = "", email = "") => {
   }
 
   // Final fallback
+  
   return "U";
 };

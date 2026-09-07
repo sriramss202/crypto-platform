@@ -23,8 +23,16 @@ export default function DataTable({ columns, rows, search, status, entityName })
         <button onClick={() => { setSort(column.key); setPage(1); }} className="inline-flex items-center gap-1 transition-colors hover:text-cyan-400">{column.label}<ArrowDownUp size={13} />
       </button>
   </th>)
-  }<th className="px-5 py-4">Actions</th></tr></thead><tbody>{visibleRows.length ? visibleRows.map((row) => <tr key={row.id} className="border-b border-white/10 last:border-0 transition-colors hover:bg-white/5">{columns.map((column) => <td key={column.key} className="whitespace-nowrap px-5 py-4 text-gray-300">{column.key === "status" ? <StatusBadge status={row.status} /> : row[column.key]}</td>)}
-  <td className="px-5 py-4"><div className="flex gap-1"><button title="View" className="rounded-xl p-2 text-cyan-400 transition-colors hover:bg-cyan-500/10"><Eye size={16} /></button>
-  <button title="Edit" className="rounded-xl p-2 text-gray-300 transition-colors hover:bg-white/10"><Pencil size={16} /></button><button title="Delete" onClick={() => setConfirming(row)} className="rounded-xl p-2 text-rose-300 transition-colors hover:bg-rose-400/10"><Trash2 size={16} /></button></div></td></tr>) : <tr>
-    <td colSpan={columns.length + 1} className="px-5 py-12 text-center text-gray-500">No {entityName.toLowerCase()} match the current filters.</td></tr>}</tbody></table></div><Pagination page={Math.min(page, totalPages)} totalPages={totalPages} onChange={setPage} />{confirming && <ConfirmModal title={`Delete ${entityName.slice(0, -1)}?`} description="This is a UI-only confirmation. No record will be changed until backend integration is added." onClose={() => setConfirming(null)} onConfirm={() => {}} />}</>;
-}
+  }
+  <th className="px-5 py-4">Actions</th></tr></thead>
+  <tbody>{visibleRows.length ? visibleRows.map((row) => <tr key={row.id} className="border-b border-white/10 last:border-0 transition-colors hover:bg-white/5">{columns.map((column) => <td key={column.key} className="whitespace-nowrap px-5 py-4 text-gray-300">{column.key === "status" ? <StatusBadge status={row.status} /> : row[column.key]}</td>)}
+  <td className="px-5 py-4">
+    <div className="flex gap-1">
+      <button title="View" className="rounded-xl p-2 text-cyan-400 transition-colors hover:bg-cyan-500/10"><Eye size={16} />
+      </button>
+  <button title="Edit" className="rounded-xl p-2 text-gray-300 transition-colors hover:bg-white/10"><Pencil size={16} /></button><button title="Delete" onClick={() => setConfirming(row)} className="rounded-xl p-2 text-rose-300 transition-colors hover:bg-rose-400/10"><Trash2 size={16} />
+  </button>
+  </div>
+  </td>
+  </tr>) : <tr>
+    <td colSpan={columns.length + 1} className="px-5 py-12 text-center text-gray-500">No {entityName.toLowerCase()} match the current filters.</td></tr>}</tbody></table></div><Pagination page={Math.min(page, totalPages)} totalPages={totalPages} onChange={setPage} />{confirming && <ConfirmModal title={`Delete ${entityName.slice(0, -1)}?`} description="This is a UI-only confirmation. No record will be changed until backend integration is added." onClose={() => setConfirming(null)} onConfirm={() => {}} />}</>;  }
