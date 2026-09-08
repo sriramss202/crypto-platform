@@ -1,5 +1,56 @@
+import { useRef } from "react";
 import { KeyRound, ShieldAlert } from "lucide-react";
+import { useAdminGSAP } from "../hooks/useAdminGSAP";
 
 export default function AdminSettings() {
-  return <div className="max-w-3xl space-y-7"><div><p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">Preferences</p><h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Settings</h1><p className="mt-2 text-sm text-slate-400">Security and notification controls will be activated after server-side admin accounts exist.</p></div><section className="rounded-2xl border border-white/10 bg-[#0a1423]"><div className="flex gap-4 border-b border-white/10 p-5 sm:p-6"><div className="rounded-xl bg-cyan-400/10 p-2.5 text-cyan-300"><KeyRound size={20} /></div><div><h2 className="font-semibold">Authentication</h2><p className="mt-1 text-sm text-slate-400">Password changes and multi-factor authentication require backend support.</p></div></div><div className="flex gap-4 p-5 sm:p-6"><div className="rounded-xl bg-amber-400/10 p-2.5 text-amber-300"><ShieldAlert size={20} /></div><div><h2 className="font-semibold">Preview safeguard</h2><p className="mt-1 text-sm leading-6 text-slate-400">This panel does not persist configuration changes. Its login is a local browser session for navigating the frontend preview only.</p></div></div></section></div>;
+  const containerRef = useRef(null);
+
+  // Hook GSAP stagger animations
+  useAdminGSAP(containerRef);
+
+  return (
+    <div ref={containerRef} className="max-w-4xl space-y-8">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">
+          Preferences & Security
+        </p>
+        <h1 className="gsap-title mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          Admin Settings
+        </h1>
+        <p className="mt-2 text-sm text-gray-400">
+          Security controls and session configuration options.
+        </p>
+      </div>
+
+      <section
+        data-gsap="fade-up"
+        className="divide-y divide-white/10 rounded-3xl border border-white/10 bg-[#081020]/40 shadow-2xl backdrop-blur-xl"
+      >
+        <div className="flex gap-5 p-6 sm:p-8">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+            <KeyRound size={22} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white">Authentication & Security</h2>
+            <p className="mt-1.5 text-sm leading-6 text-gray-300">
+              Multi-factor authentication enforcement, session duration rules, and credential policies.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-5 p-6 sm:p-8">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+            <ShieldAlert size={22} />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white">Preview Safeguard Active</h2>
+            <p className="mt-1.5 text-sm leading-6 text-gray-300">
+              This session runs in isolated local preview mode. Global configuration changes remain safe and non-persistent until live production APIs are bound.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }
+

@@ -1,17 +1,22 @@
 function TopTraders() {
   return (
-    <div className="h-full rounded-3xl border border-white/10 bg-[#101827] p-8">
+    <div
+      data-gsap="fade-up"
+      className="h-full rounded-3xl border border-white/10 bg-[#081020]/40 p-6 backdrop-blur-xl shadow-2xl transition-all duration-300 sm:p-8"
+    >
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Top Traders</h2>
-          <p className="mt-2 text-gray-400">Ranks will appear here once data is available.</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Top Traders</h2>
+          <p className="mt-1.5 text-xs text-gray-400">Live leaderboard rankings active during epoch cycles.</p>
         </div>
 
-        <span className="rounded-full bg-cyan-500/10 px-4 py-2 text-sm text-cyan-400">Coming Soon</span>
+        <span className="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-3.5 py-1 text-xs font-semibold text-cyan-300">
+          Leaderboard
+        </span>
       </div>
 
-      <div className="rounded-2xl border border-dashed border-white/10 bg-[#0B1220] p-6 text-center text-sm text-gray-400">
-        No trader rankings available yet.
+      <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-8 text-center text-sm font-medium text-gray-400 backdrop-blur-md">
+        No active trader rankings recorded for current epoch.
       </div>
     </div>
   );
